@@ -1,7 +1,12 @@
 import torch
 from torch import nn, Tensor
-from zeta.nn import MambaBlock, FeedForward, MultiQueryAttention
+from zeta.nn import (
+    MambaBlock,
+    FeedForward,
+    MultiQueryAttention,
+)
 import torch.nn.functional as F
+from mamba_transformer.blocks import LinearAttention
 
 
 class RMSNorm(nn.Module):
@@ -14,9 +19,9 @@ class RMSNorm(nn.Module):
         return F.normalize(x, dim=-1) * self.scale * self.g
 
 
-class MultiQueryTransformerBlock(nn.Module):
+class TransformerBlock(nn.Module):
     """
-    MultiQueryTransformerBlock is a module that represents a single block of the Multi-Query Transformer.
+    TransformerBlock is a module that represents a single block of the Multi-Query Transformer.
     It consists of a multi-query attention layer, a feed-forward network, and layer normalization.
 
     Args:
@@ -38,7 +43,7 @@ class MultiQueryTransformerBlock(nn.Module):
 
     Methods:
         forward(x: Tensor) -> Tensor:
-            Performs a forward pass of the MultiQueryTransformerBlock.
+            Performs a forward pass of the TransformerBlock.
 
     """
 
@@ -49,6 +54,7 @@ class MultiQueryTransformerBlock(nn.Module):
         dim_head: int,
         dropout: float = 0.1,
         ff_mult: int = 4,
+        use_linear_attn: bool = False,
         *args,
         **kwargs,
     ):
@@ -58,8 +64,14 @@ class MultiQueryTransformerBlock(nn.Module):
         self.dim_head = dim_head
         self.dropout = dropout
         self.ff_mult = ff_mult
+        self.use_linear_attn = use_linear_attn
 
         self.attn = MultiQueryAttention(dim, heads, *args, **kwargs)
+
+        # Linear Attention
+        self.linear_attn = LinearAttention(
+            dim=dim, heads=heads, dim_head=dim_head, dropout=dropout
+        )
 
         self.ffn = FeedForward(dim, dim, ff_mult, *args, **kwargs)
 
@@ -68,7 +80,7 @@ class MultiQueryTransformerBlock(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         """
-        Performs a forward pass of the MultiQueryTransformerBlock.
+        Performs a forward pass of the TransformerBlock.
 
         Args:
             x (Tensor): The input tensor.
@@ -77,9 +89,14 @@ class MultiQueryTransformerBlock(nn.Module):
             Tensor: The output tensor.
 
         """
-        x, _, _ = self.attn(x)
-        x = self.norm(x)
-        x = self.ffn(x)
+        if self.use_linear_attn:
+            x = self.linear_attn(x)
+            x = self.norm(x)
+            x = self.ffn(x)
+        else:
+            x, _, _ = self.attn(x)
+            x = self.norm(x)
+            x = self.ffn(x)
         return x
 
 
@@ -106,7 +123,7 @@ class MambaTransformerblock(nn.Module):
         dropout (float): The dropout rate.
         ff_mult (int): The multiplier for the feed-forward network dimension.
         mamba_blocks (nn.ModuleList): List of MambaBlock instances.
-        transformer_blocks (nn.ModuleList): List of MultiQueryTransformerBlock instances.
+        transformer_blocks (nn.ModuleList): List of TransformerBlock instances.
         ffn_blocks (nn.ModuleList): List of FeedForward instances.
         norm (nn.LayerNorm): Layer normalization module.
 
@@ -140,6 +157,7 @@ class MambaTransformerblock(nn.Module):
         d_state: int = None,
         transformer_depth: int = 1,
         mamba_depth: int = 1,
+        use_linear_attn: bool = False,
         *args,
         **kwargs,
     ):
@@ -167,15 +185,16 @@ class MambaTransformerblock(nn.Module):
             self.ffn_blocks.append(
                 FeedForward(dim, dim, ff_mult, *args, **kwargs)
             )
-            
+
         for _ in range(transformer_depth):
             self.transformer_blocks.append(
-                MultiQueryTransformerBlock(
+                TransformerBlock(
                     dim,
                     heads,
                     dim_head,
                     dropout,
                     ff_mult,
+                    use_linear_attn,
                     *args,
                     **kwargs,
                 )
@@ -247,6 +266,7 @@ class MambaTransformer(nn.Module):
         return_embeddings: bool = False,
         transformer_depth: int = 1,
         mamba_depth: int = 1,
+        use_linear_attn=False,
         *args,
         **kwargs,
     ):
@@ -274,6 +294,7 @@ class MambaTransformer(nn.Module):
             return_embeddings,
             transformer_depth,
             mamba_depth,
+            use_linear_attn,
             *args,
             **kwargs,
         )

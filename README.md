@@ -37,11 +37,14 @@ model = MambaTransformer(
     ff_mult=4,  # Multiplier for the feed-forward layer dimension
     return_embeddings=False,  # Whether to return the embeddings,
     transformer_depth=2,  # Number of transformer blocks
-    mamba_depth=10,  # Number of Mamba blocks
+    mamba_depth=10,  # Number of Mamba blocks,
+    use_linear_attn=True,  # Whether to use linear attention
 )
 
 # Pass the input tensor through the model and print the output shape
-print(model(x).shape)
+out = model(x)
+
+print(out.shape)
 
 
 # to train

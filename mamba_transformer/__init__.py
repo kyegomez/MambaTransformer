@@ -1,13 +1,16 @@
+from mamba_transformer.blocks import LinearAttention
+
 from mamba_transformer.model import (
     RMSNorm,
-    MultiQueryTransformerBlock,
+    TransformerBlock,
     MambaTransformerblock,
     MambaTransformer,
 )
 
 __all__ = [
+    "LinearAttention",
     "RMSNorm",
-    "MultiQueryTransformerBlock",
+    "TransformerBlock",
     "MambaTransformerblock",
     "MambaTransformer",
 ]
