@@ -2,7 +2,12 @@
 
 # Mamba Transformer
 
-![Mamba Transformer](https://www.figma.com/file/YZxnPMjtj5XrEA4XC2ANIE/Mamba-Transformer?type=whiteboard&node-id=1%3A2&t=ybC6tnz8xiYie1hb-1?raw=true)
+<img
+src=“https://www.figma.com/file/YZxnPMjtj5XrEA4XC2ANIE/Mamba-Transformer?type=whiteboard&node-id=1%3A2&t=ybC6tnz8xiYie1hb-1”
+raw=true
+alt=“Subject Pronouns”
+style=“margin-right: 10px;”
+/>
 
 Integrating Mamba/SSMs with Transformer for Enhanced Long Context and High-Quality Sequence Modeling.
 
