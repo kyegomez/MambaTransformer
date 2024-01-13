@@ -196,6 +196,38 @@ class MambaTransformerblock(nn.Module):
 
 
 class MambaTransformer(nn.Module):
+    """
+    MambaTransformer is a PyTorch module that implements the Mamba Transformer model.
+
+    Args:
+        num_tokens (int): The number of tokens in the input vocabulary.
+        dim (int): The dimensionality of the token embeddings and model hidden states.
+        heads (int): The number of attention heads.
+        depth (int): The number of transformer blocks.
+        dim_head (int): The dimensionality of each attention head.
+        dropout (float, optional): The dropout rate. Defaults to 0.1.
+        ff_mult (int, optional): The multiplier for the feed-forward network dimension. Defaults to 4.
+        d_state (int, optional): The dimensionality of the state embeddings. Defaults to None.
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
+        
+    Examples:
+        >>> import torch
+        >>> from mt import MambaTransformer
+        >>> x = torch.randint(0, 100, (1, 10))
+        >>> model = MambaTransformer(
+        ...     num_tokens=100,
+        ...     dim=512,
+        ...     heads=8,
+        ...     depth=4,
+        ...     dim_head=64,
+        ...     d_state=512,
+        ...     dropout=0.1,
+        ...     ff_mult=4
+        ... )
+        >>> print(model(x).shape)
+        torch.Size([1, 10, 100])
+    """
     def __init__(
         self,
         num_tokens: int,
@@ -206,24 +238,10 @@ class MambaTransformer(nn.Module):
         dropout: float = 0.1,
         ff_mult: int = 4,
         d_state: int = None,
+        return_embeddings: bool = False,
         *args,
         **kwargs,
     ):
-        """
-        MambaTransformer is a PyTorch module that implements the Mamba Transformer model.
-
-        Args:
-            num_tokens (int): The number of tokens in the input vocabulary.
-            dim (int): The dimensionality of the token embeddings and model hidden states.
-            heads (int): The number of attention heads.
-            depth (int): The number of transformer blocks.
-            dim_head (int): The dimensionality of each attention head.
-            dropout (float, optional): The dropout rate. Defaults to 0.1.
-            ff_mult (int, optional): The multiplier for the feed-forward network dimension. Defaults to 4.
-            d_state (int, optional): The dimensionality of the state embeddings. Defaults to None.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__()
         self.dim = dim
         self.depth = depth
@@ -232,6 +250,7 @@ class MambaTransformer(nn.Module):
         self.dropout = dropout
         self.ff_mult = ff_mult
         self.d_state = d_state
+        self.return_embeddings = return_embeddings
 
         self.emb = nn.Embedding(num_tokens, dim)
         self.mt_block = MambaTransformerblock(
@@ -261,4 +280,8 @@ class MambaTransformer(nn.Module):
         """
         x = self.emb(x)
         x = self.mt_block(x)
-        return self.to_logits(x)
+
+        if self.return_embeddings:
+            return x
+        else:
+            return self.to_logits(x)

@@ -20,7 +20,7 @@ I added in many normalizations as I believe by default training stability would 
 ### Usage
 ```python
 import torch
-from mamba_transformer.model import MambaTransformer
+from mamba_transformer import MambaTransformer
 
 # Generate a random tensor of shape (1, 10) with values between 0 and 99
 x = torch.randint(0, 100, (1, 10))
