@@ -1,6 +1,7 @@
 [![Multi-Modality](agorabanner.png)](https://discord.gg/qUtxnK2NMf)
 
 # Mamba Transformer
+![Mamba Transformer](https://www.figma.com/file/YZxnPMjtj5XrEA4XC2ANIE/Mamba-Transformer?type=whiteboard&node-id=1%3A2&t=ybC6tnz8xiYie1hb-1)
 Integrating Mamba/SSMs with Transformer for Enhanced Long Context and High-Quality Sequence Modeling.
 
 This is 100% novel architecture that I have designed to combine the strengths and weaknesses out of SSMs and Attention for an all-new advanced architecture with the purpose of surpassing our old limits. Faster processing speed, longer context lengths, lower perplexity over long sequences, enhanced and superior reasoning while remaining small and compact.
