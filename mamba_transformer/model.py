@@ -7,11 +7,11 @@ import torch.nn.functional as F
 class RMSNorm(nn.Module):
     def __init__(self, dim: int):
         super().__init__()
-        self.scale = dim ** -0.5
+        self.scale = dim**-0.5
         self.g = nn.Parameter(torch.ones(dim))
-    
+
     def forward(self, x: Tensor):
-        return F.normalize(x, dim = - 1) * self.scale * self.g
+        return F.normalize(x, dim=-1) * self.scale * self.g
 
 
 class MultiQueryTransformerBlock(nn.Module):
@@ -109,11 +109,11 @@ class MambaTransformerblock(nn.Module):
         transformer_blocks (nn.ModuleList): List of MultiQueryTransformerBlock instances.
         ffn_blocks (nn.ModuleList): List of FeedForward instances.
         norm (nn.LayerNorm): Layer normalization module.
-        
+
     Examples:
-        import torch 
+        import torch
         from mt import MambaTransformerblock
-        
+
         x = torch.randn(1, 10, 512)
         model = MambaTransformerblock(
             dim=512,
@@ -232,7 +232,7 @@ class MambaTransformer(nn.Module):
         self.dropout = dropout
         self.ff_mult = ff_mult
         self.d_state = d_state
-        
+
         self.emb = nn.Embedding(num_tokens, dim)
         self.mt_block = MambaTransformerblock(
             dim,
@@ -246,10 +246,9 @@ class MambaTransformer(nn.Module):
             **kwargs,
         )
         self.to_logits = nn.Sequential(
-            RMSNorm(dim),
-            nn.Linear(dim, num_tokens)
+            RMSNorm(dim), nn.Linear(dim, num_tokens)
         )
-    
+
     def forward(self, x: Tensor) -> Tensor:
         """
         Forward pass of the MambaTransformer model.
@@ -263,5 +262,3 @@ class MambaTransformer(nn.Module):
         x = self.emb(x)
         x = self.mt_block(x)
         return self.to_logits(x)
-    
-    
