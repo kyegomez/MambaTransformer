@@ -47,7 +47,7 @@ out = model(x)
 print(out.shape)
 
 
-# to train
+# After many training
 model.eval()
 
 # Would you like to train this model? Zeta Corporation offers unmatchable GPU clusters at unbeatable prices, let's partner!
