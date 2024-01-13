@@ -138,6 +138,8 @@ class MambaTransformerblock(nn.Module):
         dropout: float = 0.1,
         ff_mult: int = 4,
         d_state: int = None,
+        transformer_depth: int = 1,
+        mamba_depth: int = 1,
         *args,
         **kwargs,
     ):
@@ -149,17 +151,24 @@ class MambaTransformerblock(nn.Module):
         self.dropout = dropout
         self.ff_mult = ff_mult
         self.d_state = d_state
+        self.transformer_depth = transformer_depth
+        self.mamba_depth = mamba_depth
 
         self.mamba_blocks = nn.ModuleList([])
         self.transformer_blocks = nn.ModuleList([])
         self.ffn_blocks = nn.ModuleList([])
 
         self.mamba_blocks.append(
-            MambaBlock(dim, depth, d_state, *args, **kwargs)
+            MambaBlock(dim, mamba_depth, d_state, *args, **kwargs)
         )
 
         # Transformer and ffn blocks
         for _ in range(depth):
+            self.ffn_blocks.append(
+                FeedForward(dim, dim, ff_mult, *args, **kwargs)
+            )
+            
+        for _ in range(transformer_depth):
             self.transformer_blocks.append(
                 MultiQueryTransformerBlock(
                     dim,
@@ -170,10 +179,6 @@ class MambaTransformerblock(nn.Module):
                     *args,
                     **kwargs,
                 )
-            )
-
-            self.ffn_blocks.append(
-                FeedForward(dim, dim, ff_mult, *args, **kwargs)
             )
 
         # Layernorm
@@ -210,7 +215,7 @@ class MambaTransformer(nn.Module):
         d_state (int, optional): The dimensionality of the state embeddings. Defaults to None.
         *args: Variable length argument list.
         **kwargs: Arbitrary keyword arguments.
-        
+
     Examples:
         >>> import torch
         >>> from mt import MambaTransformer
@@ -228,6 +233,7 @@ class MambaTransformer(nn.Module):
         >>> print(model(x).shape)
         torch.Size([1, 10, 100])
     """
+
     def __init__(
         self,
         num_tokens: int,
@@ -239,6 +245,8 @@ class MambaTransformer(nn.Module):
         ff_mult: int = 4,
         d_state: int = None,
         return_embeddings: bool = False,
+        transformer_depth: int = 1,
+        mamba_depth: int = 1,
         *args,
         **kwargs,
     ):
@@ -251,6 +259,8 @@ class MambaTransformer(nn.Module):
         self.ff_mult = ff_mult
         self.d_state = d_state
         self.return_embeddings = return_embeddings
+        self.transformer_depth = transformer_depth
+        self.mamba_depth = mamba_depth
 
         self.emb = nn.Embedding(num_tokens, dim)
         self.mt_block = MambaTransformerblock(
@@ -261,6 +271,9 @@ class MambaTransformer(nn.Module):
             dropout,
             ff_mult,
             d_state,
+            return_embeddings,
+            transformer_depth,
+            mamba_depth,
             *args,
             **kwargs,
         )
@@ -283,5 +296,6 @@ class MambaTransformer(nn.Module):
 
         if self.return_embeddings:
             return x
+
         else:
             return self.to_logits(x)

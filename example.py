@@ -14,6 +14,9 @@ model = MambaTransformer(
     d_state=512,  # Dimension of the state
     dropout=0.1,  # Dropout rate
     ff_mult=4,  # Multiplier for the feed-forward layer dimension
+    return_embeddings=False,  # Whether to return the embeddings,
+    transformer_depth=2,  # Number of transformer blocks
+    mamba_depth=10,  # Number of Mamba blocks
 )
 
 # Pass the input tensor through the model and print the output shape
